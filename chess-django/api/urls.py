@@ -6,6 +6,6 @@ urlpatterns = [
     path('vitals/', vitals, name='vitals'),
     path('set-csrf-token/', set_csrf_token, name='set-csrf-token'),
     path('get-csrf-token/', get_csrf, name='get-csrf-token'),
-    path('validate-move/', validate_move, name='validate-move'),
+    path('validate-move/', validate_move, name='validate-move')
     
 ]
