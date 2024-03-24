@@ -18,4 +18,4 @@ def get_csrf(request):
 
 @ensure_csrf_cookie
 def set_csrf_token(request):
-    return render(request, "api/set_csrf_token.html") 
+    return render(request, "api/set_csrf_token.html")
