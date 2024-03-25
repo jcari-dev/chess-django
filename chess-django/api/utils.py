@@ -1,4 +1,4 @@
-
+import chess
 
 def parse_board(board_dict, turn, castling_rights, en_passant, halfmove_clock, fullmove_number):
 
@@ -43,3 +43,13 @@ def determine_piece_turn(piece_moving):
     elif 'b' == piece_moving[0]:
         return 'b'
     return False
+
+def get_valid_moves_from_square(fen, file_and_rank):
+    
+    board = chess.Board(fen)
+    
+    square = chess.parse_square(file_and_rank)
+    
+    valid_moves_from_square = [str(move)[2:] for move in board.legal_moves if move.from_square == square]
+    
+    return valid_moves_from_square
