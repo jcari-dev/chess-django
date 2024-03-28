@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 import json
 import chess
-from .utils import parse_board, determine_piece_turn, get_valid_moves_from_square
+from .utils import fen_to_board, parse_board, determine_piece_turn, get_valid_moves_from_square
 from room.models import Match, Room
 from pprint import pprint
 
@@ -50,9 +50,11 @@ def check_turn(request):
 
         fen = match_data.board
 
+        boardData = fen_to_board(fen)
         board = chess.Board(fen)
         my_turn = False
         color = ""
+        turn_count = int(match_data.board.split(" ")[-1])
         if board.turn and requester_color == "white":
             my_turn = True
             color = "w"
@@ -60,7 +62,8 @@ def check_turn(request):
         elif not board.turn and requester_color == "black":
             my_turn = True
             color = "b"
-        return JsonResponse({"myTurn": my_turn, "color": color})
+    
+        return JsonResponse({"myTurn": my_turn, "color": color, "boardData": boardData, "turnCount": turn_count})
 
     except Room.DoesNotExist:
         return JsonResponse({"error": "Room does not exist."}, status=404)
@@ -106,8 +109,10 @@ def check_move_continuation(request):
             board = chess.Board(initial_fen)
 
             def is_valid_continuation(board, target_fen):
+                
                 for move in board.legal_moves:
                     board.push(move)
+                    print("Valid moves: ", board.fen(), "My fen: ", target_fen)
                     if board.fen() == target_fen:
                         return True
                     board.pop()
@@ -118,6 +123,8 @@ def check_move_continuation(request):
             if valid_continuation:
                 updated_match = Match.objects.create(room=room, board=target_fen)
                 updated_match.save()
+            else:
+                print('Invalid FEN.')
 
             return JsonResponse({"valid_continuation": valid_continuation})
         except Exception as e:

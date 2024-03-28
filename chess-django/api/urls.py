@@ -2,7 +2,7 @@ from django.urls import path
 from .views import vitals, set_csrf_token, get_csrf
 from .validation_views import validate_move
 from .moves_views import get_valid_moves, check_turn, check_move_continuation
-from .room_views import create_room, join_room, check_room, update_match, get_fen, get_turn
+from .room_views import create_room, join_room, check_room, update_match, get_fen, get_turn, get_player_color
 
 urlpatterns = [
     
@@ -19,6 +19,8 @@ urlpatterns = [
     path('get-fen/', get_fen, name="get-fen"),
     path('check-move-continuation/', check_move_continuation, name="check-move-continuation"),
     path('get-turn/', get_turn, name="get-turn"),
+    path('get-player-color/', get_player_color, name="get-player-color"),
+    
     
     
     
