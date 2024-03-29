@@ -6,6 +6,7 @@ from .utils import fen_to_board, parse_board, determine_piece_turn, get_valid_mo
 from room.models import Match, Room
 from pprint import pprint
 
+
 @require_http_methods(["POST"])
 def get_valid_moves(request):
     if request.method == 'POST':
@@ -52,9 +53,12 @@ def check_turn(request):
 
         boardData = fen_to_board(fen)
         board = chess.Board(fen)
+        
         my_turn = False
         color = ""
         turn_count = int(match_data.board.split(" ")[-1])
+        halfmove_clock = int(match_data.board.split(" ")[-2])
+        
         if board.turn and requester_color == "white":
             my_turn = True
             color = "w"
@@ -62,8 +66,10 @@ def check_turn(request):
         elif not board.turn and requester_color == "black":
             my_turn = True
             color = "b"
-    
-        return JsonResponse({"myTurn": my_turn, "color": color, "boardData": boardData, "turnCount": turn_count})
+
+
+
+        return JsonResponse({"myTurn": my_turn, "color": color, "boardData": boardData, "turnCount": turn_count, "halfmoveClock": halfmove_clock})
 
     except Room.DoesNotExist:
         return JsonResponse({"error": "Room does not exist."}, status=404)
@@ -81,10 +87,11 @@ def check_move_continuation(request):
         room_id = data['roomId']
 
         board_data = data['board']
-        
+
         pprint(board_data)
 
-        color_moving = determine_piece_turn(data['pieceMoving']) # In this case it will always be inverted
+        # In this case it will always be inverted
+        color_moving = determine_piece_turn(data['pieceMoving'])
 
         castling_rights = data['castlingRights']
 
@@ -96,7 +103,7 @@ def check_move_continuation(request):
 
         target_fen = parse_board(
             board_data, color_moving, castling_rights, en_passant, halfmove_clock, fullmove_number)
-        
+
         print(target_fen, "This is the target fen.")
 
         try:
@@ -109,7 +116,7 @@ def check_move_continuation(request):
             board = chess.Board(initial_fen)
 
             def is_valid_continuation(board, target_fen):
-                
+
                 for move in board.legal_moves:
                     board.push(move)
                     print("Valid moves: ", board.fen(), "My fen: ", target_fen)
@@ -119,9 +126,10 @@ def check_move_continuation(request):
                 return False
 
             valid_continuation = is_valid_continuation(board, target_fen)
-            
+
             if valid_continuation:
-                updated_match = Match.objects.create(room=room, board=target_fen)
+                updated_match = Match.objects.create(
+                    room=room, board=target_fen)
                 updated_match.save()
             else:
                 print('Invalid FEN.')
