@@ -5,7 +5,6 @@ from .moves_views import get_valid_moves, check_turn, check_move_continuation
 from .room_views import create_room, join_room, check_room, update_match, get_fen, get_turn, get_player_color
 
 urlpatterns = [
-    
     path('vitals/', vitals, name='vitals'),
     path('set-csrf-token/', set_csrf_token, name='set-csrf-token'),
     path('get-csrf-token/', get_csrf, name='get-csrf-token'),
@@ -17,12 +16,8 @@ urlpatterns = [
     path('check-turn/', check_turn, name="check-turn"),
     path('update-match/', update_match, name="update-match"),
     path('get-fen/', get_fen, name="get-fen"),
-    path('check-move-continuation/', check_move_continuation, name="check-move-continuation"),
+    path('check-move-continuation/', check_move_continuation,
+         name="check-move-continuation"),
     path('get-turn/', get_turn, name="get-turn"),
-    path('get-player-color/', get_player_color, name="get-player-color"),
-    
-    
-    
-    
-
+    path('get-player-color/', get_player_color, name="get-player-color")
 ]

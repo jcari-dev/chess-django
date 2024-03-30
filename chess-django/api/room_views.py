@@ -171,25 +171,23 @@ def get_turn(request):
     except:
         return JsonResponse({'error': 'Getting the turn count.'}, status=400)
 
+
 @require_http_methods(["POST"])
 def get_player_color(request):
     data = json.loads(request.body)
 
     room_id = data.get('roomId')
     user_id = data.get('userId')
-    
-
 
     try:
-        
+
         room = Room.objects.get(room_id=room_id)
-        
+
         if user_id == room.player_a:
             return JsonResponse({"playerColor":  room.player_a_color})
 
         elif user_id == room.player_b:
             return JsonResponse({"playerColor":  room.player_b_color})
-
 
     except:
         return JsonResponse({'error': 'Getting the turn count.'}, status=400)
