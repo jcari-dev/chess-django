@@ -25,13 +25,8 @@ def validate_move(request):
         fen_string = parse_board(
             board_data, color_moving, castling_rights, en_passant, halfmove_clock, fullmove_number)
 
-        print(data)
-
         print("---------")
-
-        
 
         print(fen_string)
 
         return JsonResponse({"valid": True})
-

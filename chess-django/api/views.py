@@ -10,8 +10,7 @@ def vitals(request):
         return HttpResponse(":)", content_type="text/plain")
     elif request.method == 'POST':
         return JsonResponse({"message": "Kicking!"})
-    
-    
+
 @ensure_csrf_cookie
 def get_csrf(request):
     return JsonResponse({'csrfToken': get_token(request)})

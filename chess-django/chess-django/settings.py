@@ -37,25 +37,26 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'api',
+    'room'
 
 ]
 
 ALLOWED_HOSTS = [
-    '127.0.0.1',
+    '127.0.0.1', "chessapi.ngrok.io"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
+    'http://localhost:3000', "https://chess-9a6ec.web.app"
 ]
 
 CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000',
+    'http://localhost:3000', "https://chess-9a6ec.web.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000'
+    'http://localhost:3000', "https://chess-9a6ec.web.app"
 ]
 
 # AUTH_USER_MODEL = 'api.UserExtension'
