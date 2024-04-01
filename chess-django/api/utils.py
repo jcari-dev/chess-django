@@ -2,15 +2,23 @@ import chess
 from room.models import Room, Match
 
 
-def parse_board(board_dict, turn, castling_rights, en_passant, halfmove_clock, fullmove_number):
+def parse_board(
+    board_dict, turn, castling_rights, en_passant, halfmove_clock, fullmove_number
+):
 
     piece_to_fen = {
-        "b_rook": "r", "w_rook": "R",
-        "b_knight": "n", "w_knight": "N",
-        "b_bishop": "b", "w_bishop": "B",
-        "b_queen": "q", "w_queen": "Q",
-        "b_king": "k", "w_king": "K",
-        "b_pawn": "p", "w_pawn": "P",
+        "b_rook": "r",
+        "w_rook": "R",
+        "b_knight": "n",
+        "w_knight": "N",
+        "b_bishop": "b",
+        "w_bishop": "B",
+        "b_queen": "q",
+        "w_queen": "Q",
+        "b_king": "k",
+        "w_king": "K",
+        "b_pawn": "p",
+        "w_pawn": "P",
     }
 
     fen_rows = []
@@ -35,17 +43,19 @@ def parse_board(board_dict, turn, castling_rights, en_passant, halfmove_clock, f
         fen_rows.append(row)
 
     # Use the turn and fullmove_number parameters in the FEN string
-    fen = f"/".join(fen_rows) + \
-        f" {turn} {castling_rights} {en_passant} {halfmove_clock} {fullmove_number}"
+    fen = (
+        f"/".join(fen_rows)
+        + f" {turn} {castling_rights} {en_passant} {halfmove_clock} {fullmove_number}"
+    )
     return fen
 
 
 def determine_piece_turn(piece_moving):
     if piece_moving:
-        if 'w' == piece_moving[0]:
-            return 'w'
-        elif 'b' == piece_moving[0]:
-            return 'b'
+        if "w" == piece_moving[0]:
+            return "w"
+        elif "b" == piece_moving[0]:
+            return "b"
         return False
 
 
@@ -56,7 +66,8 @@ def get_valid_moves_from_square(fen, file_and_rank):
     square = chess.parse_square(file_and_rank)
 
     valid_moves_from_square = [
-        str(move)[2:] for move in board.legal_moves if move.from_square == square]
+        str(move)[2:] for move in board.legal_moves if move.from_square == square
+    ]
 
     return valid_moves_from_square
 
@@ -70,43 +81,53 @@ def determine_online_turn(fen):
 
 def fen_to_board(fen):
     piece_to_full = {
-        "r": "b_rook", "n": "b_knight", "b": "b_bishop",
-        "q": "b_queen", "k": "b_king", "p": "b_pawn",
-        "R": "w_rook", "N": "w_knight", "B": "w_bishop",
-        "Q": "w_queen", "K": "w_king", "P": "w_pawn",
+        "r": "b_rook",
+        "n": "b_knight",
+        "b": "b_bishop",
+        "q": "b_queen",
+        "k": "b_king",
+        "p": "b_pawn",
+        "R": "w_rook",
+        "N": "w_knight",
+        "B": "w_bishop",
+        "Q": "w_queen",
+        "K": "w_king",
+        "P": "w_pawn",
     }
 
     # Initialize the board object
     board = {}
     rank = 8  # Start from the top of the board
-    file = 'a'  # Start from the left of the board
-    files = 'abcdefgh'
+    file = "a"  # Start from the left of the board
+    files = "abcdefgh"
 
     # Helper to get square color
     def get_square_color(file, rank):
         # Files 'a', 'c', 'e', 'g' are 'white' on even ranks and 'coral' on odd ranks
-        if file in 'aceg':
-            return 'coral' if rank % 2 == 0 else 'white'
+        if file in "aceg":
+            return "coral" if rank % 2 == 0 else "white"
         else:
-            return 'white' if rank % 2 == 0 else 'coral'
+            return "white" if rank % 2 == 0 else "coral"
 
     # Process the board part of the FEN string
-    for char in fen.split(' ')[0]:
-        if char == '/':  # Move down a rank
+    for char in fen.split(" ")[0]:
+        if char == "/":  # Move down a rank
             rank -= 1
-            file = 'a'
+            file = "a"
         elif char.isdigit():  # Empty squares
             for _ in range(int(char)):
                 square = f"{file}{rank}"
                 color = get_square_color(file, rank)
-                board[square] = {"piece": "",
-                                 "color": color, "highlight": False}
+                board[square] = {"piece": "", "color": color, "highlight": False}
                 file = files[(files.index(file) + 1) % 8]
         else:  # Piece symbols
             square = f"{file}{rank}"
             color = get_square_color(file, rank)
-            board[square] = {"piece": piece_to_full[char],
-                             "color": color, "highlight": False}
+            board[square] = {
+                "piece": piece_to_full[char],
+                "color": color,
+                "highlight": False,
+            }
             file = files[(files.index(file) + 1) % 8]
 
     return board
@@ -127,7 +148,8 @@ def get_turn_count(room_id):
         try:
 
             match_data = Match.objects.filter(room=room).latest(
-                'id')  # Efficiently fetch the latest match
+                "id"
+            )  # Efficiently fetch the latest match
 
             return int(match_data.board.split(" ")[-1])
 

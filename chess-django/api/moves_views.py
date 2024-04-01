@@ -48,10 +48,22 @@ def check_turn(request):
     data = json.loads(request.body)
     room_id = data["roomId"]
     requester_id = data["userId"]
-
+    print(requester_id)
     try:
         room = Room.objects.get(room_id=room_id)
+        print(room.player_a, room.player_b)
         match_data = Match.objects.filter(room=room).latest("id")
+        
+        fen = match_data.board
+
+        boardData = fen_to_board(fen)
+        if room.winner and room.winner != "Unknown":
+            print("@@@@@@@?")
+            return JsonResponse(
+                {"winner": room.winner, "boardData": boardData}, status=200
+            )
+
+        print("????????@")
 
         if requester_id == room.player_a:
             requester_color = room.player_a_color
@@ -62,14 +74,17 @@ def check_turn(request):
                 {"error": "Requester is not a player in this room."}, status=400
             )
 
-        fen = match_data.board
-
-        boardData = fen_to_board(fen)
         board = chess.Board(fen)
-        
+
         is_in_check = board.is_check()
 
         is_checkmate = board.is_checkmate()
+
+        if is_checkmate:
+            room.status = "FINISHED"
+            winner = "white" if board.turn == chess.BLACK else "black"
+            room.winner = winner
+            room.save()
 
         my_turn = False
         color = ""
@@ -83,8 +98,6 @@ def check_turn(request):
         elif not board.turn and requester_color == "black":
             my_turn = True
             color = "b"
-            
-            
 
         return JsonResponse(
             {
@@ -94,7 +107,7 @@ def check_turn(request):
                 "turnCount": turn_count,
                 "halfmoveClock": halfmove_clock,
                 "check": is_in_check,
-                "checkmate": is_checkmate
+                "checkmate": is_checkmate,
             }
         )
 
