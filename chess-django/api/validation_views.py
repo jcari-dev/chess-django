@@ -3,8 +3,10 @@ from django.views.decorators.http import require_http_methods
 import json
 import chess
 from .utils import parse_board, determine_piece_turn
+from django_ratelimit.decorators import ratelimit
 
 
+@ratelimit(key='ip', rate='3/s', block=True)
 @require_http_methods(["POST"])
 def validate_move(request):
     if request.method == 'POST':

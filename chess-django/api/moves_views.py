@@ -10,8 +10,10 @@ from .utils import (
 )
 from room.models import Match, Room
 from pprint import pprint
+from django_ratelimit.decorators import ratelimit
 
 
+@ratelimit(key="ip", rate="3/s", block=True)
 @require_http_methods(["POST"])
 def get_valid_moves(request):
     if request.method == "POST":
@@ -43,6 +45,7 @@ def get_valid_moves(request):
         return JsonResponse({"legalMoves": legal_moves})
 
 
+@ratelimit(key="ip", rate="3/s", block=True)
 @require_http_methods(["POST"])
 def check_turn(request):
     data = json.loads(request.body)
@@ -53,7 +56,7 @@ def check_turn(request):
         room = Room.objects.get(room_id=room_id)
         print(room.player_a, room.player_b)
         match_data = Match.objects.filter(room=room).latest("id")
-        
+
         fen = match_data.board
 
         boardData = fen_to_board(fen)
@@ -118,6 +121,7 @@ def check_turn(request):
         return JsonResponse({"error": "An unexpected error occurred."}, status=500)
 
 
+@ratelimit(key="ip", rate="3/s", block=True)
 @require_http_methods(["POST"])
 def check_move_continuation(request):
     try:

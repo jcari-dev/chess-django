@@ -3,6 +3,7 @@ from django.views.decorators.http import require_http_methods
 from room.models import Room, Match
 import json
 import chess
+from django_ratelimit.decorators import ratelimit
 from .utils import (
     determine_piece_turn,
     get_turn_count,
@@ -11,7 +12,7 @@ from .utils import (
     is_valid_fen,
 )
 
-
+@ratelimit(key='ip', rate='3/s', block=True)
 @require_http_methods(["POST"])
 def create_room(request):
     room = Room()
@@ -22,7 +23,7 @@ def create_room(request):
         {"message": "Room created successfully", "roomId": room.room_id}
     )
 
-
+@ratelimit(key='ip', rate='3/s', block=True)
 @require_http_methods(["POST"])
 def join_room(request):
     data = json.loads(request.body)
@@ -62,7 +63,7 @@ def join_room(request):
 
     return JsonResponse({"message": "Joined room successfully."}, status=203)
 
-
+@ratelimit(key='ip', rate='3/s', block=True)
 @require_http_methods(["GET"])
 def check_room(request, roomId):
     try:
@@ -83,7 +84,7 @@ def check_room(request, roomId):
     except Room.DoesNotExist:
         return JsonResponse({"error": "Room does not exist"}, status=404)
 
-
+@ratelimit(key='ip', rate='3/s', block=True)
 @require_http_methods(["POST"])
 def update_match(request):
     data = json.loads(request.body)
@@ -156,7 +157,7 @@ def update_match(request):
         print(f"Error: {e}")
         return JsonResponse({"error": "An unexpected error occurred."}, status=500)
 
-
+@ratelimit(key='ip', rate='3/s', block=True)
 @require_http_methods(["POST"])
 def get_fen(request):
     data = json.loads(request.body)
@@ -177,7 +178,7 @@ def get_fen(request):
 
     return JsonResponse({"message": "Joined room successfully."}, status=203)
 
-
+@ratelimit(key='ip', rate='3/s', block=True)
 @require_http_methods(["POST"])
 def get_turn(request):
     data = json.loads(request.body)
@@ -190,7 +191,7 @@ def get_turn(request):
     except:
         return JsonResponse({"error": "Getting the turn count."}, status=400)
 
-
+@ratelimit(key='ip', rate='3/s', block=True)
 @require_http_methods(["POST"])
 def get_player_color(request):
     data = json.loads(request.body)
