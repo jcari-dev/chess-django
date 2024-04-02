@@ -54,7 +54,18 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "https://chess-9a6ec.web.app"]
 
 # AUTH_USER_MODEL = 'api.UserExtension'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'default-location',
+    },
+    'cache-for-ratelimiting': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-location',
+    },
+}
 
+RATELIMIT_USE_CACHE = 'cache-for-ratelimiting'
 
 CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SECURE = True
@@ -71,6 +82,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "chess-django.middlewares.RateLimitMiddleware"
 ]
 
 
