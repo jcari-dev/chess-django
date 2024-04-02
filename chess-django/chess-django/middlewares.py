@@ -13,8 +13,9 @@ class RateLimitMiddleware:
         # Check if user IP is blocked
         ip_address = request.META.get("REMOTE_ADDR")
         if cache.get(f"blocked_{ip_address}"):
+            admin_email = os.getenv("ADMIN_EMAIL")
             return HttpResponseForbidden(
-                f"You are temporarily blocked. If you believe this is an error email: {os.getenv("ADMIN_EMAIL")} - Thanks!"
+                f"You are temporarily blocked. If you believe this is an error email: {admin_email} - Thanks!"
             )
 
         response = self.get_response(request)
