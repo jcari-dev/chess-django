@@ -7,7 +7,7 @@ from django_ratelimit.decorators import ratelimit
 import json
 
 
-@ratelimit(key="ip", rate="3/s", block=True)
+@ratelimit(key="ip", rate="5/s", block=True)
 @require_http_methods(["POST"])
 def get_profile(request):
     data = json.loads(request.body)

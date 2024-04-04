@@ -1,5 +1,7 @@
 import chess
 from room.models import Room, Match
+import random
+from stockfish import Stockfish
 
 
 def parse_board(
@@ -157,3 +159,62 @@ def get_turn_count(room_id):
             print("Cant find match data. To determine turn.")
     except:
         print("Cant find room. To determine turn.")
+
+def sort_colors(user_color):
+    color_choices = ["white", "black"]
+    
+    if user_color == "white":
+        cpu_color = "black"
+    elif user_color == "black":
+        cpu_color = "white"
+    elif user_color == "random":
+        # Randomly select for user, ensuring CPU gets the opposite color
+        user_color = random.choice(color_choices)
+        cpu_color = "black" if user_color == "white" else "white"
+    else:
+        # If somehow the color isnt white, black or random 
+        cpu_color = "unknown"
+        
+    return {"user_color": user_color, "cpu_color": cpu_color}
+
+def stockfish_move(difficulty, fen):
+    stockfish = Stockfish("/usr/games/stockfish")
+    
+    # Set the board position using the FEN
+    stockfish.set_fen_position(fen)
+    
+    # Configure difficulty settings
+    if difficulty == "Village Hero (Beginner)":
+        stockfish.set_skill_level(4)
+        stockfish.set_depth(2)
+        best_move = stockfish.get_best_move_time(100)  # Time is in milliseconds
+    elif difficulty == "Defender of the Realm (Easy)":
+        stockfish.set_skill_level(8)
+        stockfish.set_depth(4)
+        best_move = stockfish.get_best_move_time(200)  
+    elif difficulty == "Knight of the Chess Table (Medium)":
+        stockfish.set_skill_level(12)
+        stockfish.set_depth(6)
+        best_move = stockfish.get_best_move_time(500)  
+    elif difficulty == "Grandmaster Quest (Hard)":
+        stockfish.set_skill_level(17)
+        stockfish.set_depth(8)
+        best_move = stockfish.get_best_move_time(1000) 
+    elif difficulty == "Legend of the Kings (Expert)":
+        stockfish.set_skill_level(20)
+        stockfish.set_depth(12)
+        best_move = stockfish.get_best_move_time(2000)  
+    else:
+        print(difficulty)
+        raise ValueError("Unsupported difficulty level")
+    
+    # Get the best move for the current position
+    best_move = stockfish.get_best_move()
+    
+    # Apply this move to update the board's state
+    stockfish.make_moves_from_current_position([best_move])
+    
+    # Retrieve the new FEN string representing the updated board state
+    new_fen = stockfish.get_fen_position()
+    print(new_fen, "This is what stockfish thinks is the best move now.")
+    return new_fen

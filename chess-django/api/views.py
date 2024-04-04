@@ -5,7 +5,7 @@ from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django_ratelimit.decorators import ratelimit
 
-@ratelimit(key="ip", rate="3/s", block=True)
+@ratelimit(key="ip", rate="5/s", block=True)
 @require_http_methods(["POST", "GET"])
 def vitals(request):
     if request.method == "GET":
@@ -14,13 +14,13 @@ def vitals(request):
         return JsonResponse({"message": "Kicking!"})
 
 
-@ratelimit(key="ip", rate="3/s", block=True)
+@ratelimit(key="ip", rate="5/s", block=True)
 @ensure_csrf_cookie
 def get_csrf(request):
     return JsonResponse({"csrfToken": get_token(request)})
 
 
-@ratelimit(key="ip", rate="3/s", block=True)
+@ratelimit(key="ip", rate="/s", block=True)
 @ensure_csrf_cookie
 def set_csrf_token(request):
     return render(request, "api/set_csrf_token.html")
