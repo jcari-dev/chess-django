@@ -1,9 +1,16 @@
 from django.db import models
-from .utils import generate_room_id
+import uuid
 
+
+def generate_room_id():
+    new_uuid = uuid.uuid4().hex[:16].upper()
+    if Room.objects.filter(room_id=new_uuid).exists():
+        new_uuid = generate_room_id()
+    return new_uuid
 
 class Room(models.Model):
-    room_id = models.CharField(max_length=6, unique=True, default=generate_room_id)
+
+    room_id = models.CharField(max_length=16, unique=True, default=generate_room_id)
     player_a = models.CharField(max_length=50, null=True, blank=True)
     player_a_color = models.CharField(max_length=5, null=True, blank=True)
 
@@ -32,3 +39,4 @@ class Room(models.Model):
 class Match(models.Model):
     board = models.CharField(max_length=100)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    difficulty = models.CharField(max_length=50, null=True, blank=True)

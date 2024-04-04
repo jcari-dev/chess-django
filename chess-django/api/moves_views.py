@@ -13,7 +13,7 @@ from pprint import pprint
 from django_ratelimit.decorators import ratelimit
 
 
-@ratelimit(key="ip", rate="3/s", block=True)
+@ratelimit(key="ip", rate="5/s", block=True)
 @require_http_methods(["POST"])
 def get_valid_moves(request):
     if request.method == "POST":
@@ -45,7 +45,7 @@ def get_valid_moves(request):
         return JsonResponse({"legalMoves": legal_moves})
 
 
-@ratelimit(key="ip", rate="3/s", block=True)
+@ratelimit(key="ip", rate="5/s", block=True)
 @require_http_methods(["POST"])
 def check_turn(request):
     data = json.loads(request.body)
@@ -121,7 +121,7 @@ def check_turn(request):
         return JsonResponse({"error": "An unexpected error occurred."}, status=500)
 
 
-@ratelimit(key="ip", rate="3/s", block=True)
+@ratelimit(key="ip", rate="5/s", block=True)
 @require_http_methods(["POST"])
 def check_move_continuation(request):
     try:
@@ -160,6 +160,8 @@ def check_move_continuation(request):
             room = Room.objects.get(room_id=room_id)
             match_data = Match.objects.filter(room=room).latest("id")
             print(match_data.board, "This is the latest on the database.")
+            
+            difficulty = match_data.difficulty
 
             initial_fen = match_data.board
 
@@ -169,16 +171,16 @@ def check_move_continuation(request):
 
                 for move in board.legal_moves:
                     board.push(move)
-                    print("Valid moves: ", board.fen(), "My fen: ", target_fen)
                     if board.fen() == target_fen:
                         return True
                     board.pop()
                 return False
 
             valid_continuation = is_valid_continuation(board, target_fen)
-
+            
             if valid_continuation:
-                updated_match = Match.objects.create(room=room, board=target_fen)
+                updated_match = Match.objects.create(room=room, board=target_fen, difficulty=difficulty)
+                print(target_fen, "got updated to this.")
                 updated_match.save()
             else:
                 print("Invalid FEN.")

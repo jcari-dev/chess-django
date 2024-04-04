@@ -13,6 +13,7 @@ from .room_views import (
 )
 
 from .profile_views import get_profile
+from .cpu_views import create_cpu_room, check_turn_cpu
 
 urlpatterns = [
     path("vitals/", vitals, name="vitals"),
@@ -34,4 +35,7 @@ urlpatterns = [
     path("get-turn/", get_turn, name="get-turn"),
     path("get-player-color/", get_player_color, name="get-player-color"),
     path("get-profile/", get_profile, name="get-profile"),
+    path("cpu-create-room/", create_cpu_room, name="cpu-create-room"),
+    path("check-turn-cpu/", check_turn_cpu, name="check-turn-cpu"),
+    
 ]
