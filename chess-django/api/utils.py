@@ -183,7 +183,7 @@ def stockfish_move(difficulty, fen):
     # Set the board position using the FEN
     stockfish.set_fen_position(fen)
     
-    # Configure difficulty settings
+
     if difficulty == "Village Hero (Beginner)":
         stockfish.set_skill_level(4)
         stockfish.set_depth(2)
@@ -208,13 +208,15 @@ def stockfish_move(difficulty, fen):
         print(difficulty)
         raise ValueError("Unsupported difficulty level")
     
-    # Get the best move for the current position
     best_move = stockfish.get_best_move()
     
-    # Apply this move to update the board's state
+    # Apply best move to the current board
     stockfish.make_moves_from_current_position([best_move])
     
-    # Retrieve the new FEN string representing the updated board state
+    # Get the fen from that board.
+     
     new_fen = stockfish.get_fen_position()
+    
     print(new_fen, "This is what stockfish thinks is the best move now.")
+    
     return new_fen
