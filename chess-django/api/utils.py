@@ -2,6 +2,7 @@ import chess
 from room.models import Room, Match
 import random
 from stockfish import Stockfish
+from django.core.cache import cache
 
 
 def parse_board(
@@ -63,55 +64,79 @@ def determine_piece_turn(piece_moving):
 
 def get_valid_moves_from_square(fen, file_and_rank):
 
-    board = chess.Board(fen)
+    cached_move_name = f"{fen}{file_and_rank}"
+    cached_move = cache.get(cached_move_name)
 
-    square = chess.parse_square(file_and_rank)
+    if not cached_move:
 
-    valid_moves_from_square = [
-        str(move)[2:] for move in board.legal_moves if move.from_square == square
-    ]
+        board = chess.Board(fen)
 
-    return valid_moves_from_square
+        square = chess.parse_square(file_and_rank)
+
+        valid_moves_from_square = [
+            str(move)[2:] for move in board.legal_moves if move.from_square == square
+        ]
+        cache.set(
+            cached_move_name, valid_moves_from_square, timeout=28 * 24 * 60 * 60
+        )  # 4 weeks of caching
+
+        cached_move = cache.get(cached_move_name)
+    else:
+        print("Pulling copy from Cache! :)")
+
+    return cached_move
+
 
 def get_valid_moves_from_square_practice(fen, file_and_rank, difficulty):
-
-    board = chess.Board(fen)
-    square = chess.parse_square(file_and_rank)
-    stockfish = Stockfish("/usr/games/stockfish")
-
-
-    if difficulty == "Village Hero (Beginner)":
-        stockfish.set_skill_level(4)
-        stockfish.set_depth(2)
-
-    elif difficulty == "Defender of the Realm (Easy)":
-        stockfish.set_skill_level(8)
-        stockfish.set_depth(4)
-
-    elif difficulty == "Knight of the Chess Table (Medium)":
-        stockfish.set_skill_level(12)
-        stockfish.set_depth(6)
-
-    elif difficulty == "Grandmaster Quest (Hard)":
-        stockfish.set_skill_level(17)
-        stockfish.set_depth(8)
-
-    elif difficulty == "Legend of the Kings (Expert)":
-        stockfish.set_skill_level(20)
-        stockfish.set_depth(12)
-
-    legal_moves = []
-    scores = []
-    for move in board.legal_moves:
-        if move.from_square == square:
-            board_copy = board.copy(stack=False)
-            board_copy.push(move)
-            stockfish.set_fen_position(board_copy.fen())
-            score = stockfish.get_evaluation()['value']
-            legal_moves.append(str(move)[2:])
-            scores.append(score)
     
-    return {"legal_moves": legal_moves, "scores": scores}
+    cached_move_name = f"{fen}{file_and_rank}{difficulty}"
+    cached_valid_moves_from_square_with_scores = cache.get(cached_move_name)
+
+    if not cached_valid_moves_from_square_with_scores:
+        board = chess.Board(fen)
+        square = chess.parse_square(file_and_rank)
+        stockfish = Stockfish("/usr/games/stockfish")
+
+        if difficulty == "Village Hero (Beginner)":
+            stockfish.set_skill_level(4)
+            stockfish.set_depth(2)
+
+        elif difficulty == "Defender of the Realm (Easy)":
+            stockfish.set_skill_level(8)
+            stockfish.set_depth(4)
+
+        elif difficulty == "Knight of the Chess Table (Medium)":
+            stockfish.set_skill_level(12)
+            stockfish.set_depth(6)
+
+        elif difficulty == "Grandmaster Quest (Hard)":
+            stockfish.set_skill_level(17)
+            stockfish.set_depth(8)
+
+        elif difficulty == "Legend of the Kings (Expert)":
+            stockfish.set_skill_level(20)
+            stockfish.set_depth(12)
+
+        legal_moves = []
+        scores = []
+        for move in board.legal_moves:
+            if move.from_square == square:
+                board_copy = board.copy(stack=False)
+                board_copy.push(move)
+                stockfish.set_fen_position(board_copy.fen())
+                score = stockfish.get_evaluation()["value"]
+                legal_moves.append(str(move)[2:])
+                scores.append(score)
+        valid_moves_from_square_with_scores = {"legal_moves": legal_moves, "scores": scores}
+        cache.set(
+            cached_move_name, valid_moves_from_square_with_scores, timeout=28 * 24 * 60 * 60
+        )  # 4 weeks of caching
+        
+        cached_valid_moves_from_square_with_scores = cache.get(cached_move_name)
+    else:
+        print("Pulled move from cache! :)")
+
+    return cached_valid_moves_from_square_with_scores
 
 
 def determine_online_turn(fen):
@@ -200,9 +225,10 @@ def get_turn_count(room_id):
     except:
         print("Cant find room. To determine turn.")
 
+
 def sort_colors(user_color):
     color_choices = ["white", "black"]
-    
+
     if user_color == "white":
         cpu_color = "black"
     elif user_color == "black":
@@ -212,17 +238,17 @@ def sort_colors(user_color):
         user_color = random.choice(color_choices)
         cpu_color = "black" if user_color == "white" else "white"
     else:
-        # If somehow the color isnt white, black or random 
+        # If somehow the color isnt white, black or random
         cpu_color = "unknown"
-        
+
     return {"user_color": user_color, "cpu_color": cpu_color}
+
 
 def stockfish_move(difficulty, fen):
     stockfish = Stockfish("/usr/games/stockfish")
-    
+
     # Set the board position using the FEN
     stockfish.set_fen_position(fen)
-    
 
     if difficulty == "Village Hero (Beginner)":
         stockfish.set_skill_level(4)
@@ -231,32 +257,32 @@ def stockfish_move(difficulty, fen):
     elif difficulty == "Defender of the Realm (Easy)":
         stockfish.set_skill_level(8)
         stockfish.set_depth(4)
-        best_move = stockfish.get_best_move_time(200)  
+        best_move = stockfish.get_best_move_time(200)
     elif difficulty == "Knight of the Chess Table (Medium)":
         stockfish.set_skill_level(12)
         stockfish.set_depth(6)
-        best_move = stockfish.get_best_move_time(500)  
+        best_move = stockfish.get_best_move_time(500)
     elif difficulty == "Grandmaster Quest (Hard)":
         stockfish.set_skill_level(17)
         stockfish.set_depth(8)
-        best_move = stockfish.get_best_move_time(1000) 
+        best_move = stockfish.get_best_move_time(1000)
     elif difficulty == "Legend of the Kings (Expert)":
         stockfish.set_skill_level(20)
         stockfish.set_depth(12)
-        best_move = stockfish.get_best_move_time(2000)  
+        best_move = stockfish.get_best_move_time(2000)
     else:
         print(difficulty)
         raise ValueError("Unsupported difficulty level")
-    
+
     best_move = stockfish.get_best_move()
-    
+
     # Apply best move to the current board
     stockfish.make_moves_from_current_position([best_move])
-    
+
     # Get the fen from that board.
-     
+
     new_fen = stockfish.get_fen_position()
-    
+
     print(new_fen, "This is what stockfish thinks is the best move now.")
-    
+
     return new_fen
