@@ -32,7 +32,7 @@ def get_valid_moves(request):
 
         fullmove_number = data["turnCount"]
         
-        room_id = data["roomId"]
+        room_id = data.get("roomId", "")
 
         fen_string = parse_board(
             board_data,
@@ -42,9 +42,12 @@ def get_valid_moves(request):
             halfmove_clock,
             fullmove_number,
         )
-        room = Room.objects.filter(room_id=room_id).latest("-id")
-        match_data = Match.objects.filter(room=room).latest("-id")
-        practice = match_data.practice
+        practice = ""
+        
+        if room_id:
+            room = Room.objects.filter(room_id=room_id).latest("-id")
+            match_data = Match.objects.filter(room=room).latest("-id")
+            practice = match_data.practice
 
         if practice:
             print("PRACTICE IS ENABLED")

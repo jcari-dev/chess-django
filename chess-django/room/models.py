@@ -17,6 +17,7 @@ class Room(models.Model):
     player_b = models.CharField(max_length=50, null=True, blank=True)
     player_b_color = models.CharField(max_length=5, null=True, blank=True)
 
+
     status = models.CharField(
         max_length=10,
         choices=[
