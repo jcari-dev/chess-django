@@ -55,15 +55,21 @@ CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "https://chess-9a6ec.web.app"]
 
 # AUTH_USER_MODEL = 'api.UserExtension'
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'default-location',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_CONNECTION"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     },
     'cache-for-ratelimiting': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-location',
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_CONNECTION"),
     },
 }
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 
 RATELIMIT_USE_CACHE = 'cache-for-ratelimiting'
 
@@ -71,6 +77,7 @@ CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = True
+
 
 
 MIDDLEWARE = [
