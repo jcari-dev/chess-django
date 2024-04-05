@@ -24,6 +24,7 @@ def create_cpu_room(request):
     print(difficulty, "CREATING ROOM")
     color = data["color"]
     user_id = data["userId"]
+    practice = data["practiceMode"]
 
     colors = sort_colors(color)
 
@@ -36,7 +37,7 @@ def create_cpu_room(request):
     room.save()
 
     base_board = chess.Board()
-    match = Match(board=base_board.fen(), room=room, difficulty=difficulty)
+    match = Match(board=base_board.fen(), room=room, difficulty=difficulty, practice=practice)
     # Here you can manipulate or check the match object as needed before saving
     match.save()
 

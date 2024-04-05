@@ -7,6 +7,7 @@ from .utils import (
     parse_board,
     determine_piece_turn,
     get_valid_moves_from_square,
+    get_valid_moves_from_square_practice,
 )
 from room.models import Match, Room
 from pprint import pprint
@@ -30,6 +31,8 @@ def get_valid_moves(request):
         halfmove_clock = data["halfmoveClock"]
 
         fullmove_number = data["turnCount"]
+        
+        room_id = data["roomId"]
 
         fen_string = parse_board(
             board_data,
@@ -39,10 +42,26 @@ def get_valid_moves(request):
             halfmove_clock,
             fullmove_number,
         )
+        room = Room.objects.filter(room_id=room_id).latest("-id")
+        match_data = Match.objects.filter(room=room).latest("-id")
+        practice = match_data.practice
 
-        legal_moves = get_valid_moves_from_square(fen_string, data["target"])
-        print("Legal moves generated: ", legal_moves)
-        return JsonResponse({"legalMoves": legal_moves})
+        if practice:
+            print("PRACTICE IS ENABLED")
+            move_and_score_data = get_valid_moves_from_square_practice(
+                fen_string, data["target"], match_data.difficulty
+            )
+            legal_moves = move_and_score_data["legal_moves"]
+            scores = move_and_score_data["scores"]
+            print("Legal moves generated with score: ", legal_moves)
+            return JsonResponse({"legalMoves": legal_moves, "scores": scores})
+
+        else:
+            print("PRACTICE IS NOT ENABLED")
+
+            legal_moves = get_valid_moves_from_square(fen_string, data["target"])
+            print("Legal moves generated: ", legal_moves)
+            return JsonResponse({"legalMoves": legal_moves})
 
 
 @ratelimit(key="ip", rate="5/s", block=True)
@@ -160,8 +179,10 @@ def check_move_continuation(request):
             room = Room.objects.get(room_id=room_id)
             match_data = Match.objects.filter(room=room).latest("id")
             print(match_data.board, "This is the latest on the database.")
-            
+
             difficulty = match_data.difficulty
+            
+            practice = match_data.practice
 
             initial_fen = match_data.board
 
@@ -177,9 +198,11 @@ def check_move_continuation(request):
                 return False
 
             valid_continuation = is_valid_continuation(board, target_fen)
-            
+
             if valid_continuation:
-                updated_match = Match.objects.create(room=room, board=target_fen, difficulty=difficulty)
+                updated_match = Match.objects.create(
+                    room=room, board=target_fen, difficulty=difficulty, practice=practice
+                )
                 print(target_fen, "got updated to this.")
                 updated_match.save()
             else:

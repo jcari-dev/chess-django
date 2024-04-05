@@ -40,3 +40,4 @@ class Match(models.Model):
     board = models.CharField(max_length=100)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     difficulty = models.CharField(max_length=50, null=True, blank=True)
+    practice = models.BooleanField(default=False)

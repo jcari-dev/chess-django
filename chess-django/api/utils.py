@@ -64,7 +64,7 @@ def determine_piece_turn(piece_moving):
 def get_valid_moves_from_square(fen, file_and_rank):
 
     board = chess.Board(fen)
-    print(file_and_rank, "@@@@@@@@@@@@@@@@@ file and rank")
+
     square = chess.parse_square(file_and_rank)
 
     valid_moves_from_square = [
@@ -72,6 +72,46 @@ def get_valid_moves_from_square(fen, file_and_rank):
     ]
 
     return valid_moves_from_square
+
+def get_valid_moves_from_square_practice(fen, file_and_rank, difficulty):
+
+    board = chess.Board(fen)
+    square = chess.parse_square(file_and_rank)
+    stockfish = Stockfish("/usr/games/stockfish")
+
+
+    if difficulty == "Village Hero (Beginner)":
+        stockfish.set_skill_level(4)
+        stockfish.set_depth(2)
+
+    elif difficulty == "Defender of the Realm (Easy)":
+        stockfish.set_skill_level(8)
+        stockfish.set_depth(4)
+
+    elif difficulty == "Knight of the Chess Table (Medium)":
+        stockfish.set_skill_level(12)
+        stockfish.set_depth(6)
+
+    elif difficulty == "Grandmaster Quest (Hard)":
+        stockfish.set_skill_level(17)
+        stockfish.set_depth(8)
+
+    elif difficulty == "Legend of the Kings (Expert)":
+        stockfish.set_skill_level(20)
+        stockfish.set_depth(12)
+
+    legal_moves = []
+    scores = []
+    for move in board.legal_moves:
+        if move.from_square == square:
+            board_copy = board.copy(stack=False)
+            board_copy.push(move)
+            stockfish.set_fen_position(board_copy.fen())
+            score = stockfish.get_evaluation()['value']
+            legal_moves.append(str(move)[2:])
+            scores.append(score)
+    
+    return {"legal_moves": legal_moves, "scores": scores}
 
 
 def determine_online_turn(fen):

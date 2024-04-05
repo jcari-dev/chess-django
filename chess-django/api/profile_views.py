@@ -19,6 +19,6 @@ def get_profile(request):
     )
 
     matches_data = list(matches.values())
-    print(matches_data)
+    # print(matches_data)
 
     return JsonResponse({"matches": matches_data})
